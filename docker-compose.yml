@@ -1,75 +1,82 @@
-version: '3'
+version: '3.8'
 
 services:
-  frontend:
-    build:
-      context: ./frontend
-    container_name: frontend
-    ports:
-      - "3000"
-
   backend:
+    env_file: './backend/.env'
     build:
       context: ./backend
-    container_name: backend
+      dockerfile: Dockerfile
     ports:
-      - "8000"
-
-  postgres:
-    image: postgres:13
-    container_name: postgres
+      - "8000:8000"
     environment:
-      POSTGRES_USER: your_user
-      POSTGRES_PASSWORD: your_password
-      POSTGRES_DB: your_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
-  adminer:
-    image: adminer
-    container_name: adminer
-    ports:
-      - "8080:8080"
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - frontend
-      - backend
-
-  nginx-proxy-manager:
-    image: jc21/nginx-proxy-manager:latest
-    container_name: nginx-proxy-manager
-    ports:
-      - "81:81"
-      - "443:443"
-      - "8090:81"
-    environment:
-      DB_MYSQL_HOST: "db"
-      DB_MYSQL_PORT: 3306
-      DB_MYSQL_USER: "npm"
-      DB_MYSQL_PASSWORD: "npm"
-      DB_MYSQL_NAME: "npm"
+      - DOMAIN=localhost
+      - ENVIRONMENT=local
+      - PROJECT_NAME=Full Stack FastAPI Project
+      - STACK_NAME=full-stack-fastapi-project
+      - BACKEND_CORS_ORIGINS=http://localhost,http://localhost:5173,https://localhost,https://localhost:5173
+      - SECRET_KEY=changethis123
+      - FIRST_SUPERUSER=devops@hng.tech
+      - FIRST_SUPERUSER_PASSWORD=devops#HNG11
+      - USERS_OPEN_REGISTRATION=True
+      - SMTP_HOST=
+      - SMTP_USER=
+      - SMTP_PASSWORD=
+      - EMAILS_FROM_EMAIL=info@example.com
+      - SMTP_TLS=True
+      - SMTP_SSL=False
+      - SMTP_PORT=587
+      - POSTGRES_SERVER=dpg-cq45nto8fa8c73fl4cj0-a.oregon-postgres.render.com
+      - POSTGRES_DB=hng_devops_2
+      - POSTGRES_USER=justusedwinson
+      - POSTGRES_PASSWORD=6UGnRF3MqLZ9P9fP1NqydV33VczsYKLG
     depends_on:
       - db
 
-  db:
-    image: jc21/mariadb-aria:latest
-    container_name: nginx-proxy-db
-    environment:
-      MYSQL_ROOT_PASSWORD: "npm"
-      MYSQL_DATABASE: "npm"
-      MYSQL_USER: "npm"
-      MYSQL_PASSWORD: "npm"
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    env_file: './frontend/.env'
+
+  # nginx:
+  #   build:
+  #     context: ./nginx
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - backend
+  #     - frontend
+
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80' # Public HTTP Port
+      - '443:443' # Public HTTPS Port
+      - '8090:81' # Admin Web Port
+
     volumes:
-      - ./data/mysql:/var/lib/mysql
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: dpg-cq45nto8fa8c73fl4cj0-a.oregon-postgres.render.com
+      POSTGRES_USER: justusedwinson
+      POSTGRES_PASSWORD: 6UGnRF3MqLZ9P9fP1NqydV33VczsYKLG
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
 
 volumes:
-  postgres_data:
+  db_data:
