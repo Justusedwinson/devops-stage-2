@@ -1,7 +1,12 @@
-# Use an official node image as the base
-FROM node:14-alpine
+# Dockerfile for frontend service
 
-# Set the working directory
+# Use a base Node.js image
+FROM node:14
+
+# Install git (if not already installed)
+RUN apt-get update && apt-get install -y git
+
+# Set working directory
 WORKDIR /app
 
 # Copy package.json and package-lock.json
@@ -13,11 +18,8 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Build the application
-RUN npm run build
-
-# Expose the port the app runs on
+# Expose port 3000
 EXPOSE 3000
 
-# Start the application
+# Command to run the application
 CMD ["npm", "start"]
