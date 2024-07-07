@@ -17,7 +17,6 @@ COPY . /usr/src/app
 RUN npm install
 
 
-
 # Expose the port the app runs on
 EXPOSE 5173
 
